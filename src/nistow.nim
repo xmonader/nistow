@@ -25,7 +25,7 @@ proc getLinkableFiles*(appPath: string, dest: string=expandTilde("~")): seq[Link
     raise newException(ValueError, fmt("App path {appPath} doesn't exist."))
   var linkables = newSeq[LinkInfo]()
   for filepath in walkDirRec(appPath, yieldFilter={pcFile}):
-    let linkpath =  dest / filepath.replace(appPath, "")
+    let linkpath =  filepath.replace(appPath, dest)
         # remove leading /
     var linkInfo : LinkInfo = (original:filepath, dest:linkpath)
     linkables.add(linkInfo)
@@ -58,14 +58,16 @@ proc stow(linkables: seq[LinkInfo], simulate: bool=true, verbose: bool=true, for
 
 proc writeHelp() = 
     echo """
-    Stow 0.1.0
-        -h | --help     : show help
-        -v | --version  : show version
-        --verbose       : verbose messages
-        -s | --simulate : simulate stow operation
-        -f | --force    : override old links
-        -a | --app      : application path to stow
-        -d | --dest     : destination to stow to
+Stow 0.1.0 (Manage your dotfiles easily)
+
+Allowed arguments:
+    -h | --help     : show help
+    -v | --version  : show version
+    --verbose       : verbose messages
+    -s | --simulate : simulate stow operation
+    -f | --force    : override old links
+    -a | --app      : application path to stow
+    -d | --dest     : destination to stow to
 
     """
 proc writeVersion() =
@@ -76,6 +78,10 @@ proc cli*() =
   var 
     simulate, verbose, force: bool = false
     app, dest: string = ""
+  
+  if paramCount() == 0:
+    writeHelp()
+    quit(0)
   
   for kind, key, val in getopt():
     case kind
@@ -101,7 +107,6 @@ proc cli*() =
     dest = getHomeDir()
   if app.isNilOrEmpty():
     echo "Make sure to provide --app flags"
-    writeHelp()
     quit(1)
   try:
     stow(getLinkableFiles(appPath=app, dest=dest), simulate=simulate, verbose=verbose, force=force)
