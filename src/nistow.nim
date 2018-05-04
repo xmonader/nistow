@@ -97,8 +97,10 @@ proc cli*() =
     else:
       discard 
 
-  if app.isNilOrEmpty() or dest.isNilOrEmpty():
-    echo "Make sure to provide --app and --dest flags"
+  if dest.isNilOrEmpty():
+    dest = getHomeDir()
+  if app.isNilOrEmpty():
+    echo "Make sure to provide --app flags"
     writeHelp()
     quit(1)
   try:
