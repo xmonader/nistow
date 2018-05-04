@@ -19,9 +19,11 @@ proc getLinkableFiles*(appPath: string, dest: string=expandTilde("~")): seq[Link
     #         `-- config
 
     # dest: destination of the link files : default is the home of user.
+
   var appPath = expandTilde(appPath)
+  if not dirExists(appPath):
+    raise newException(ValueError, fmt("App path {appPath} doesn't exist."))
   var linkables = newSeq[LinkInfo]()
-  echo $appPath
   for filepath in walkDirRec(appPath, yieldFilter={pcFile}):
     let linkpath =  dest / filepath.replace(appPath, "")
         # remove leading /
@@ -73,10 +75,7 @@ proc writeVersion() =
 proc cli*() =
   var 
     simulate, verbose, force: bool = false
-    app, dest: string
-  
-  if paramCount() == 0:
-    writeHelp()
+    app, dest: string = ""
   
   for kind, key, val in getopt():
     case kind
@@ -98,7 +97,14 @@ proc cli*() =
     else:
       discard 
 
-  stow(getLinkableFiles(appPath=app, dest=dest), simulate=simulate, verbose=verbose, force=force)
-    
+  if app.isNilOrEmpty() or dest.isNilOrEmpty():
+    echo "Make sure to provide --app and --dest flags"
+    writeHelp()
+    quit(1)
+  try:
+    stow(getLinkableFiles(appPath=app, dest=dest), simulate=simulate, verbose=verbose, force=force)
+  except ValueError:
+    echo "Error happened: " & getCurrentExceptionMsg()
+
 when isMainModule:
   cli()
