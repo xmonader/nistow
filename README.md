@@ -153,7 +153,7 @@ We want to get all the files in there with full path and the link file to each o
 
 ```
 [/home/striky/wspace/dotfiles/i3]/.config/i3/config -> [/home/striky]/.config/i3/config
-__________________apppath________                      _____dest____
+__________________appPath________                      _____dest____
 ```
 
 ```nim
